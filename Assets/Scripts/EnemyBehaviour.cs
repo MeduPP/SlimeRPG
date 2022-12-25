@@ -7,7 +7,7 @@ public class EnemyBehaviour : MonoBehaviour
 {
     [SerializeField] private Scrollbar HpBar;
     private float _maxHealPoints;
-    private float _healPoints;
+    private float _healthPoints;
     private float _moveSpeed;
     private float _damageDistance;
     private float _damageRate;
@@ -15,6 +15,8 @@ public class EnemyBehaviour : MonoBehaviour
 
     public static Action<EnemyBehaviour> OnEnemyDeath;
     public static Action<float> OnEnemyDamage;
+
+    public float HealthPoints {get { return _healthPoints; }}
 
     private bool _isMoving = false;
     private GameObject _target;
@@ -29,7 +31,7 @@ public class EnemyBehaviour : MonoBehaviour
         float damageRate)
     {
         _maxHealPoints = healPoints;
-        _healPoints = healPoints;
+        _healthPoints = healPoints;
         _moveSpeed = moveSpeed;
         _target = target;
         Damage = enemyDamage;
@@ -47,7 +49,7 @@ public class EnemyBehaviour : MonoBehaviour
 
         if (_isMoving)
         { 
-            if (diraction.magnitude < 4f)
+            if (diraction.magnitude < 4f)//TODO: remove magic number
                 transform.Translate(diraction.normalized * _moveSpeed * Time.deltaTime);
             else
                 transform.Translate(Vector3.forward * -_moveSpeed * Time.deltaTime);
@@ -75,10 +77,7 @@ public class EnemyBehaviour : MonoBehaviour
     private void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.CompareTag("Player"))
-        {
             _isMoving = false;
-            //_damageCoroutine = StartCoroutine(DoDamage());
-        }
     }
 
     private void OnTriggerEnter(Collider other)
@@ -86,10 +85,10 @@ public class EnemyBehaviour : MonoBehaviour
         if (other.gameObject.CompareTag("Bullet"))
         {
             float damage = other.gameObject.GetComponent<Bullet>().Damage;
-            _healPoints -= damage;
+            _healthPoints -= damage;
             Destroy(other.gameObject);//TODO: bullet destroy effect
 
-            if (_healPoints <= 0)
+            if (_healthPoints <= 0)
                 Die();
 
             HpBar.size -= damage / _maxHealPoints;

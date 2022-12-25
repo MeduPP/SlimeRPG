@@ -17,6 +17,7 @@ public class EnemyManager : MonoBehaviour
     [SerializeField] private float _enemyDamageRate;
 
     private List<EnemyBehaviour> aliveEnemies = new();
+    private List<Transform> enemyIsTargets = new();
 
     public Action WaveEnd;
 
@@ -25,7 +26,12 @@ public class EnemyManager : MonoBehaviour
         return aliveEnemies.Count > 0;
     }
 
-    public List<Transform> GetAliveEnemies()
+    public void RemoveEnemyFromTargets(Transform enemy)
+    {
+        enemyIsTargets.Remove(enemy);
+    }
+
+    public List<Transform> GetTargetEnemies()
     {
         List<Transform> list = new(aliveEnemies.Count);
         aliveEnemies.ForEach(item => list.Add(item.transform));
