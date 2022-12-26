@@ -20,13 +20,19 @@ public class Shoot : MonoBehaviour
 
     public float FireRateBoost = 1;
     public float DamageBoost = 1;
+
     private void Start()
     {
         StartCoroutine(Shooting());
     }
 
-    IEnumerator Shooting()
+    IEnumerator Shooting()//TODO: Do not shoot at the enemy if the damage is fatal
     {
+        //expected damage to target
+        float sumDamage = 0;
+        //current target
+        Transform nearestEnemy = null;
+
         while (true)
         {
             if (_enemyManager.IsAliveEnemiesLeft())
@@ -34,21 +40,35 @@ public class Shoot : MonoBehaviour
                 float fireRate = _fireRate * FireRateBoost;//Apply fire rate boost
                 float damage = DamageBoost * _damage;//Apply damage boost
 
-                //TODO: shoot in the closest enemy  
                 List<Transform> targets = _enemyManager.GetTargetEnemies();
+                Transform newNearestEnemy = FindNearestEnemy(targets);
 
-                Transform nearestEnemy = FindNearestEnemy(targets);
+                //if get new target refresh damage and target
+                if (nearestEnemy != newNearestEnemy)
+                {
+                    nearestEnemy = newNearestEnemy;
+                    sumDamage = 0;
+                }
 
+                //if target is empty then wait
                 if (nearestEnemy == null)
+                {
                     yield return new WaitForFixedUpdate();
+                    continue;
+                }
 
-                Vector3 distance = nearestEnemy.position - transform.position;
+                //calculate the distance to the nearest enemy calculate the distance to the nearest enemy
+                float distance = (nearestEnemy.position - transform.position).magnitude;
 
-                if (distance.magnitude <= _atackZone)
+                if (distance <= _atackZone)
                 {
                     GameObject bullet = Instantiate(_bulletPrefab);
 
-                    if (nearestEnemy.GetComponent<EnemyBehaviour>().HealthPoints <= damage)
+                    sumDamage += damage;
+
+                    //If the enemy dies from the next shot, no need to shoot again.
+                    if (nearestEnemy.GetComponent<EnemyBehaviour>().HealthPoints <= sumDamage)
+                        _enemyManager.RemoveEnemyFromTargets(nearestEnemy);
 
                     bullet.GetComponent<Bullet>().Init(nearestEnemy, transform, _speed, damage, _curving);
 
@@ -67,7 +87,7 @@ public class Shoot : MonoBehaviour
         Transform nearestEnemy = targets[0];
         for (int i = 0; i < targets.Count - 1; i++)
         {
-            if((targets[i + 1].position - transform.position).magnitude <
+            if ((targets[i + 1].position - transform.position).magnitude <
             (nearestEnemy.position - transform.position).magnitude)
                 nearestEnemy = targets[i + 1];
         }

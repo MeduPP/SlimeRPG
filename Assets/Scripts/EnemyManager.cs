@@ -17,7 +17,7 @@ public class EnemyManager : MonoBehaviour
     [SerializeField] private float _enemyDamageRate;
 
     private List<EnemyBehaviour> aliveEnemies = new();
-    private List<Transform> enemyIsTargets = new();
+    private List<Transform> enemesIsTarget = new();
 
     public Action WaveEnd;
 
@@ -28,14 +28,15 @@ public class EnemyManager : MonoBehaviour
 
     public void RemoveEnemyFromTargets(Transform enemy)
     {
-        enemyIsTargets.Remove(enemy);
+        enemesIsTarget.Remove(enemy);
     }
 
     public List<Transform> GetTargetEnemies()
     {
-        List<Transform> list = new(aliveEnemies.Count);
-        aliveEnemies.ForEach(item => list.Add(item.transform));
-        return list;
+        //List<Transform> targets = new();
+        //aliveEnemies.ForEach(item => targets.Add(item.transform));
+        //return targets;
+        return enemesIsTarget;
     }
 
     public void CreateEnemy(int value)
@@ -43,6 +44,8 @@ public class EnemyManager : MonoBehaviour
         for (int i = 0; i < value; i++)
         {
             GameObject enemy = Instantiate(_enemyPrefab, _spawnPoint.localPosition, _spawnPoint.rotation, transform);
+
+            //Randomise enemy spawn position
             float randDistance = UnityEngine.Random.Range(-400, 400) / 100;
             float randDir = UnityEngine.Random.Range(0, 360);
             float posX = Mathf.Cos(randDir * Mathf.Deg2Rad) * randDistance;
@@ -52,12 +55,13 @@ public class EnemyManager : MonoBehaviour
             aliveEnemies.Add(enemy.GetComponent<EnemyBehaviour>());
             aliveEnemies[aliveEnemies.Count - 1].EnemyInit(_player, _healPoints, _moveSpeed, _enemyDamage, _enemyDamageDistance, _enemyDamageRate);
         }
+        aliveEnemies.ForEach(item => enemesIsTarget.Add(item.transform));
     }
 
     private void RemoveEnemy(EnemyBehaviour enemy)
     {
         aliveEnemies.Remove(enemy);
-
+        enemesIsTarget.Remove(enemy?.transform);
         if (aliveEnemies.Count == 0)
         {
             WaveEnd?.Invoke();
